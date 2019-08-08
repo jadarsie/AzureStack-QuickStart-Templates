@@ -3,7 +3,13 @@ function Random-Name {
   -join ((97..122) | Get-Random -Count $length | % {[char]$_})
 }
 
+# Set variables to match your environment
+#########################################
+$endpoint = ""
+$envname = ""
+$AADTenantName = ""
 $location = ""
+$subscription = ""
 $resourceGroup = ""
 $saName = Random-Name 10
 $saContainer = Random-Name 10
@@ -14,7 +20,28 @@ $kvName = Random-Name 10
 $secretName = Random-Name 10
 $pfxPath = ""
 $pfxPass = ""
+$dnsdomainprefix = ""
+$adminsshkey =""
 
+# Connect to Azure / Azure Stack
+# ==============================================================
+
+Add-AzureRMEnvironment -Name $envname -ArmEndpoint $endpoint
+# Set your tenant name
+$AuthEndpoint = (Get-AzureRmEnvironment -Name $envname).ActiveDirectoryAuthority.TrimEnd('/')
+   
+$TenantId = (invoke-restmethod "$($AuthEndpoint)/$($AADTenantName)/.well-known/openid-configuration").issuer.TrimEnd('/').Split('/')[-1]
+
+# After signing in to your environment, Azure Stack cmdlets
+# can be easily targeted at your Azure Stack instance.
+Add-AzureRmAccount -EnvironmentName $envname -TenantId $TenantId
+
+# Subscription
+# =============================================
+
+#SelectSubscription
+Write-Host "Selecting user subscription"
+Select-AzureRmSubscription -Subscription $subscription | out-null
 
 # RESOURCE GROUP
 # =============================================
@@ -109,11 +136,11 @@ $jsonCertificateThumbprint | Add-Member -MemberType NoteProperty -Name value -Va
 $jsonParameters | Add-Member -MemberType NoteProperty -Name certificateThumbprint -Value $jsonCertificateThumbprint
 
 $jsonAdminPublicKey = New-Object -TypeName PSObject
-$jsonAdminPublicKey | Add-Member -MemberType NoteProperty -Name value -Value ""
+$jsonAdminPublicKey | Add-Member -MemberType NoteProperty -Name value -Value $adminsshkey
 $jsonParameters | Add-Member -MemberType NoteProperty -Name adminPublicKey -Value $jsonAdminPublicKey
 
 $jsonDomainNameLabel = New-Object -TypeName PSObject
-$jsonDomainNameLabel | Add-Member -MemberType NoteProperty -Name value -Value ""
+$jsonDomainNameLabel | Add-Member -MemberType NoteProperty -Name value -Value $dnsdomainprefix
 $jsonParameters | Add-Member -MemberType NoteProperty -Name domainNameLabel -Value $jsonDomainNameLabel
 
 $jsonCseLocation = New-Object -TypeName PSObject
