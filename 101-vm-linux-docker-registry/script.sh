@@ -82,15 +82,8 @@ installDeps() {
       fi
     done
 }
-fetchCredentials(){
-    METADATA=$(mktemp)
-    curl -s https://management.${REGISTRY_STORAGE_AZURE_REALM}/metadata/endpoints?api-version=2015-01-01 > ${METADATA}
-
-    RESOURCE=$(jq -r .authentication.audiences[0] ${METADATA} | sed "s|https://management.|https://vault.|")
-    OAUTH=$(jq -r .authentication.loginEndpoint ${METADATA})
-    
-    #TODO ADFS
-    TOKEN_URL="${OAUTH}${TENANT_ID}/oauth2/token"
+fetchCredentials() {
+    RESOURCE=$(jq -r .authentication.audiences[0] ${ENDPOINTS} | sed "s|https://management.|https://vault.|")
 
     TOKEN=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X POST \
         -H "Content-Type: application/x-www-form-urlencoded" \
@@ -100,25 +93,39 @@ fetchCredentials(){
         --data-urlencode "resource=${RESOURCE}" \
         ${TOKEN_URL} | jq -r '.access_token')
 
-    KV_BASE="https://${KV_NAME}.vault.${REGISTRY_STORAGE_AZURE_REALM}/secrets"
-    SECRETS=$(curl -s "${KV_BASE}?api-version=2016-10-01" -H "Authorization: Bearer ${TOKEN}" | jq -r .value[].id)
+    KV_URL="https://${KV_NAME}.vault.${REGISTRY_STORAGE_AZURE_REALM}/secrets"
+    SECRETS=$(curl -s "${KV_URL}?api-version=2016-10-01" -H "Authorization: Bearer ${TOKEN}" | jq -r .value[].id)
 
     rm .htpasswd
     touch .htpasswd
     for secret in ${SECRETS}
     do 
-        SECRET_NAME_VERSION="${secret//$KV_BASE}"
+        SECRET_NAME_VERSION="${secret//$KV_URL}"
         SECRET_NAME=$(echo ${SECRET_NAME_VERSION} | cut -d '/' -f 2)
         SECRET_VALUE=$(curl -s "${secret}?api-version=2016-10-01" -H "Authorization: Bearer ${TOKEN}" | jq -r .value)
         #TODO password limit 256
         htpasswd -Bb .htpasswd ${SECRET_NAME} ${SECRET_VALUE}
     done
 }
+fetchStorageKeys() {
+    RESOURCE=$(jq -r .authentication.audiences[0] ${ENDPOINTS})
+
+    TOKEN=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X POST \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -d "grant_type=client_credentials" \
+        -d "client_id=${SPN_CLIENT_ID}" \
+        --data-urlencode "client_secret=${SPN_CLIENT_SECRET}" \
+        --data-urlencode "resource=${RESOURCE}" \
+        ${TOKEN_URL} | jq -r '.access_token')
+
+    SA_URL="https://management.${REGISTRY_STORAGE_AZURE_REALM}/${SA_RESOURCE_ID}/listKeys?api-version=2017-10-01"
+
+    SA_KEY=$(curl -sX POST "${SA_URL}" -H "Authorization: Bearer ${TOKEN}" -H "Content-Length: 0" | jq -r ".keys[0].value")
+}
 
 echo ADMIN_USER_NAME:                       ${ADMIN_USER_NAME}
-echo REGISTRY_STORAGE_AZURE_ACCOUNTNAME:    ${REGISTRY_STORAGE_AZURE_ACCOUNTNAME}
-echo REGISTRY_STORAGE_AZURE_ACCOUNTKEY:     ${REGISTRY_STORAGE_AZURE_ACCOUNTKEY}
 echo REGISTRY_STORAGE_AZURE_CONTAINER:      ${REGISTRY_STORAGE_AZURE_CONTAINER}
+echo SA_RESOURCE_ID:                        ${SA_RESOURCE_ID}
 echo CERT_THUMBPRINT:                       ${CERT_THUMBPRINT}
 echo FQDN:                                  ${FQDN}
 echo LOCATION:                              ${LOCATION}
@@ -130,6 +137,7 @@ echo SPN_CLIENT_SECRET:                     ***
 echo TENANT_ID:                             ${TENANT_ID}
 echo KV_NAME:                               ${KV_NAME}
 
+SA_NAME=$(echo ${SA_RESOURCE_ID} | grep -oh -e '[[:alnum:]]*$')
 EXTERNAL_FQDN="${FQDN//$PIP_LABEL.$LOCATION.cloudapp.}"
 REGISTRY_STORAGE_AZURE_REALM=${LOCATION}.${EXTERNAL_FQDN}
 CRT_FILE="${CERT_THUMBPRINT}.crt"
@@ -165,7 +173,17 @@ mkdir -p $STORE
 cp "/var/lib/waagent/${CRT_FILE}" "${STORE}/${CRT_FILE}"
 cp "/var/lib/waagent/${KEY_FILE}" "${STORE}/${KEY_FILE}"
 
-echo moving .htpasswd to mount point
+echo getting management endpoints
+ENDPOINTS=$(mktemp)
+curl -s https://management.${REGISTRY_STORAGE_AZURE_REALM}/metadata/endpoints?api-version=2015-01-01 > ${ENDPOINTS}
+OAUTH=$(jq -r .authentication.loginEndpoint ${ENDPOINTS})
+#TODO ADFS
+TOKEN_URL="${OAUTH}${TENANT_ID}/oauth2/token"
+
+echo fetching storage key
+fetchStorageKeys
+
+echo fetching user credentials
 HTPASSWD_DIR="/root/auth"
 mkdir -p $HTPASSWD_DIR
 fetchCredentials
@@ -190,8 +208,8 @@ services:
       - /root/auth:/auth
     environment:
       - REGISTRY_STORAGE=azure
-      - REGISTRY_STORAGE_AZURE_ACCOUNTNAME=${REGISTRY_STORAGE_AZURE_ACCOUNTNAME}
-      - REGISTRY_STORAGE_AZURE_ACCOUNTKEY=${REGISTRY_STORAGE_AZURE_ACCOUNTKEY}
+      - REGISTRY_STORAGE_AZURE_ACCOUNTNAME=${SA_NAME}
+      - REGISTRY_STORAGE_AZURE_ACCOUNTKEY=${SA_KEY}
       - REGISTRY_STORAGE_AZURE_CONTAINER=${REGISTRY_STORAGE_AZURE_CONTAINER}
       - REGISTRY_STORAGE_AZURE_REALM=${REGISTRY_STORAGE_AZURE_REALM}
       - REGISTRY_AUTH=htpasswd

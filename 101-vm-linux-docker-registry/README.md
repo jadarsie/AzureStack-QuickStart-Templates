@@ -41,7 +41,6 @@ New-AzureRmResourceGroup -Name $resourceGroup -Location $location | out-null
 # Create storage account
 Write-Host "Creating storage account:" $saName
 $sa = New-AzureRmStorageAccount -ResourceGroupName $resourceGroup -AccountName $saName -Location $location -SkuName Premium_LRS -EnableHttpsTrafficOnly 1
-$saKey = (Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroup -AccountName $saName)[0].Value
 
 # Create blob container
 Write-Host "Creating blob container:" $saContainer
@@ -57,7 +56,7 @@ $cseUrl = $container.CloudBlobContainer.Uri.AbsoluteUri + "/script.sh" + $cseTok
 
 ## Key Vault configuration
 
-The deployment template will instruct Azure Resource Manager to drop your certificate in the virtual machine's file system. User credentials should be stored as secrets in the same Key Vault instance (details [here](#basic-authorization))
+The deployment template will instruct Azure Resource Manager to drop your certificate in the virtual machine's file system. User credentials should be stored as secrets in the same local Key Vault instance (details [here](#basic-authorization)) where the PFX certificate is stored.
 
 The snippet below creates the Key Vault resource and uploads the .pfx certificate.
 
@@ -108,7 +107,7 @@ $tp = Get-PfxCertificate -FilePath $pfxPath
 
 ### Basic Authorization
 
-User credentials should be stored as secrets in the same Key Vault instance where the PFX certificate is stored. This can be achieved using the web UI or the SDK.
+User credentials should be stored as secrets in the same local Key Vault instance where the PFX certificate is stored. This can be achieved using the web UI or the SDK.
 
 ```powershell
 Write-Host "Storing secret for sample user: admin"

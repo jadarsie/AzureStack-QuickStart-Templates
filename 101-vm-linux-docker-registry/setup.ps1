@@ -33,7 +33,6 @@ New-AzureRmResourceGroup -Name $resourceGroup -Location $location | out-null
 # Create storage account
 Write-Host "Creating storage account:" $saName
 $sa = New-AzureRmStorageAccount -ResourceGroupName $resourceGroup -AccountName $saName -Location $location -SkuName Premium_LRS -EnableHttpsTrafficOnly 1
-$saKey = (Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroup -AccountName $saName)[0].Value
 
 # Create container
 Write-Host "Creating blob container:" $saContainer
@@ -58,8 +57,8 @@ Write-Host "Setting access polices"
 Set-AzureRmKeyVaultAccessPolicy -VaultName $kvName -ServicePrincipalName $spnName -PermissionsToSecrets GET,LIST
 
 # Write-Host "Storing secret for sample user: admin"
-# $userSecret = ConvertTo-SecureString -String "admin" -AsPlainText -Force
-# $user = Set-AzureKeyVaultSecret -VaultName $kvName -Name "admin" -SecretValue $userSecret
+#$userSecret = ConvertTo-SecureString -String "admin" -AsPlainText -Force
+#$user = Set-AzureKeyVaultSecret -VaultName $kvName -Name "admin" -SecretValue $userSecret
 
 # Serialize certificate
 $fileContentBytes = get-content $pfxPath -Encoding Byte
@@ -88,17 +87,13 @@ $tp = Get-PfxCertificate -FilePath $pfxPath
 # =============================================
 $jsonParameters = New-Object -TypeName PSObject
 
-$jsonStorageAccountName = New-Object -TypeName PSObject
-$jsonStorageAccountName | Add-Member -MemberType NoteProperty -Name value -Value $saName
-$jsonParameters | Add-Member -MemberType NoteProperty -Name storageAccountName -Value $jsonStorageAccountName
+$jsonStorageAccountResourceId = New-Object -TypeName PSObject
+$jsonStorageAccountResourceId | Add-Member -MemberType NoteProperty -Name value -Value $sa.Id
+$jsonParameters | Add-Member -MemberType NoteProperty -Name storageAccountResourceId -Value $jsonStorageAccountResourceId
 
 $jsonStorageAccountContainerName = New-Object -TypeName PSObject
 $jsonStorageAccountContainerName | Add-Member -MemberType NoteProperty -Name value -Value $saContainer
 $jsonParameters | Add-Member -MemberType NoteProperty -Name storageAccountContainer -Value $jsonStorageAccountContainerName
-
-$jsonStorageAccountKey = New-Object -TypeName PSObject
-$jsonStorageAccountKey | Add-Member -MemberType NoteProperty -Name value -Value $saKey
-$jsonParameters | Add-Member -MemberType NoteProperty -Name storageAccountKey -Value $jsonStorageAccountKey
 
 $jsonKeyVaultResourceId = New-Object -TypeName PSObject
 $jsonKeyVaultResourceId | Add-Member -MemberType NoteProperty -Name value -Value $kv.ResourceId

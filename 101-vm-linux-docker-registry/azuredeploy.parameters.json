@@ -2,13 +2,19 @@
     "schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "storageAccountName": {
+        "adminUsername": {
+            "value": ""
+        },
+        "adminPublicKey": {
+            "value": ""
+        },
+        "domainNameLabel": {
+            "value": ""
+        },
+        "storageAccountResourceId": {
             "value": ""
         },
         "storageAccountContainer": {
-            "value": ""
-        },
-        "storageAccountKey": {
             "value": ""
         },
         "keyVaultResourceId": {
@@ -20,10 +26,7 @@
         "certificateThumbprint": {
             "value": ""
         },
-        "adminPublicKey": {
-            "value": ""
-        },
-        "domainNameLabel": {
+        "credentialsKeyVaultName": {
             "value": ""
         },
         "cseLocation": {
@@ -33,9 +36,6 @@
             "value": ""
         },
         "servicePrincipalClientSecret": {
-            "value": ""
-        },
-        "credentialsKeyVaultName": {
             "value": ""
         }
     }

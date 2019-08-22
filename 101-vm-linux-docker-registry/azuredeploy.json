@@ -50,28 +50,22 @@
                 "description": "The guest OS image version."
             }
         },
-        "storageAccountName": {
+        "domainNameLabel": {
             "type": "string",
             "metadata": {
-                "description": "An already existing storage account name."
+                "description": "The public IP DNS label."
+            }
+        },
+        "storageAccountResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "An already existing storage account resource identifier."
             }
         },
         "storageAccountContainer": {
             "type": "string",
             "metadata": {
                 "description": "An already existing storage account container name."
-            }
-        },
-        "storageAccountKey": {
-            "type": "string",
-            "metadata": {
-                "description": "The storage account access key."
-            }
-        },
-        "domainNameLabel": {
-            "type": "string",
-            "metadata": {
-                "description": "The public IP DNS label."
             }
         },
         "keyVaultResourceId": {
@@ -90,6 +84,12 @@
             "type": "string",
             "metadata": {
                 "description": "The certificate thumbprint."
+            }
+        },
+        "credentialsKeyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "Local Key Vault instance that stores user credentials as secrets"
             }
         },
         "registryTag": {
@@ -112,12 +112,6 @@
                 "description": "Download URL of the script to be executed by the template custom script extension."
             }
         },
-        "credentialsKeyVaultName": {
-            "type": "string",
-            "metadata": {
-                "description": "Local Key Vault instance that stores user credentials as secrets"
-            }
-        },
         "servicePrincipalClientId": {
             "type": "securestring",
             "metadata": {
@@ -136,7 +130,7 @@
         "subnetRef": "[concat(variables('vnetId'), '/subnets/default')]",
         "tenantId": "[subscription().tenantId]",
         "location": "[resourceGroup().location]",
-        "provisionScriptParameters": "[concat('ADMIN_USER_NAME=', parameters('adminUsername'),' REGISTRY_STORAGE_AZURE_ACCOUNTNAME=', parameters('storageAccountName'),' REGISTRY_STORAGE_AZURE_ACCOUNTKEY=', parameters('storageAccountKey'),' REGISTRY_STORAGE_AZURE_CONTAINER=', parameters('storageAccountContainer'),' CERT_THUMBPRINT=', parameters('certificateThumbprint'),' PIP_LABEL=', parameters('domainNameLabel'),' REGISTRY_TAG=', parameters('registryTag'),' KV_NAME=',parameters('credentialsKeyVaultName'),' SPN_CLIENT_ID=',parameters('servicePrincipalClientId'),' SPN_CLIENT_SECRET=',parameters('servicePrincipalClientSecret'),' REGISTRY_REPLICAS=', parameters('registryReplicas'))]"
+        "provisionScriptParameters": "[concat('ADMIN_USER_NAME=', parameters('adminUsername'),' SA_RESOURCE_ID=', parameters('storageAccountResourceId'),' REGISTRY_STORAGE_AZURE_CONTAINER=', parameters('storageAccountContainer'),' CERT_THUMBPRINT=', parameters('certificateThumbprint'),' PIP_LABEL=', parameters('domainNameLabel'),' REGISTRY_TAG=', parameters('registryTag'),' KV_NAME=',parameters('credentialsKeyVaultName'),' SPN_CLIENT_ID=',parameters('servicePrincipalClientId'),' SPN_CLIENT_SECRET=',parameters('servicePrincipalClientSecret'),' REGISTRY_REPLICAS=', parameters('registryReplicas'))]"
     },
     "resources": [
         {
