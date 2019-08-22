@@ -1,23 +1,24 @@
 # Set variables to match your environment
 #########################################
 
-$location = ""
-$resourceGroup = ""
+$location = "westus2"
+$resourceGroup = "registry-rg"
 
-$saName = ""
-$saContainer = ""
+$saName = "registry"
+$saContainer = "images"
 $saTokenIni = Get-Date
 $saTokenEnd = $saTokenIni.AddYears(1.0)
 
-$kvName = ""
-$pfxSecret = ""
-$pfxPath = ""
-$pfxPass = ""
-$spnName = ""
-$spnSecret = ""
+$kvName = "registry-kv"
+$pfxSecret = "registry-cert"
+$pfxPath = "stackpoc.pfx"
+$pfxPass = "javier"
+$spnName = "29320a73-239e-4d77-bd79-b47f2ff5417a"
+$spnSecret = "c6_*hIaYzjgUuqpL-9w15+4@Dz[zpyF3"
 
-$dnsLabelName = ""
-$sshKey = ""
+$dnsLabelName = "registry"
+$sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDIcNGGyQpj48OUhyQ1+n4TcT5NeZsmQq+QeFc3zBhnDbDVLwyFkR97B32PM7ENj3Feuv4xRxvGkU/gVNGMBzqF6zDNJcERjA5GfESHXIitxEAZJTLvCAW1nPIQgrz5vjZf/q3perm/lM9WgmVGyvLHe27wbyli7DLXP30Zh90JqFj68BlmMZkMjZSQrcNfkL9eba6Vf/wt6w3razP5kaOacOkmGQwulW11vtfo0KLVMduLNY700+j9tk5vWr0lK1k6izHggxn3aNvAAkSqGybMZPANpWCqubxaRnXpMC9USDaWtok0slA/EGKYAMHX5w1XmWBeTkMf4Ru6TCVqBaiXB4ond7azKbxWhdauADcmfj+55H7SxYCixafRIECMt0aV7FLPyPS1sF2vM79TkiF4eOJFeuoEE5PxnHoMJXKEGD5sUPQ9DhVFCUXO8qhjMwCyU0lZJdNIsarmOdWiLgRPxB9xOOWLOaUwcOoBg/KKQe/4S0pzqzoK3kWACY91aufs8FDyK9Habctj+yOCe9+53jNqwBxdMlETd8UUlzGUZxVIoCjDRuWMPvre+QnI9sUHFV6gJK7tN8Tnn4rLIkOPTN0au0rWg0OECU298vgHZ+j6Ut3/CJKGKTpGS5YmCPRTAVugaIvvgHQpPWNZJJoDqiFFJ6/rWRWdUfdEjasglw== jadarsie@microsoft.com"
+
 
 # RESOURCE GROUP
 # =============================================

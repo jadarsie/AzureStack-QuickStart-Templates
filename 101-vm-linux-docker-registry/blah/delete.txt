@@ -1,0 +1,28 @@
+        "virtualMachinePublisher": {
+            "type": "string",
+            "defaultValue": "microsoft-aks",
+            "metadata": {
+                "description": "The guest OS image publisher."
+            }
+        },
+        "virtualMachineOffer": {
+            "type": "string",
+            "defaultValue": "aks",
+            "metadata": {
+                "description": "The guest OS image offer."
+            }
+        },
+        "virtualMachineSku": {
+            "type": "string",
+            "defaultValue": "aks-ubuntu-1604-201907",
+            "metadata": {
+                "description": "The guest OS image SKU."
+            }
+        },
+        "virtualMachineVersion": {
+            "type": "string",
+            "defaultValue": "2019.07.30",
+            "metadata": {
+                "description": "The guest OS image version."
+            }
+        },
